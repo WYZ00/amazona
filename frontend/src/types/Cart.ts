@@ -2,7 +2,7 @@ import { Product } from "./Product";
 
 export type CartItem = Pick<
   Product,
-  "name" | "slug" | "countInStock" | "price" | "_id"
+  "name" | "slug" | "countInstock" | "price" | "_id"
 > & {
   image: string | undefined;
 
