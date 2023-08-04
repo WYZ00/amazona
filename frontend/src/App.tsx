@@ -4,6 +4,7 @@ import { Link, Outlet } from "react-router-dom";
 import { Store } from "./Store";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/ReactToastify.css";
+import { LinkContainer } from "react-router-bootstrap";
 
 function App() {
   const {
@@ -25,7 +26,9 @@ function App() {
       <header>
         <Navbar expand="lg">
           <Container>
-            <Navbar.Brand>TS Amazona</Navbar.Brand>
+            <LinkContainer to={"/"}>
+              <Navbar.Brand>TS Amazona</Navbar.Brand>
+            </LinkContainer>
           </Container>
           <Nav>
             <Button variant={mode} onClick={switchModeHandler}>
