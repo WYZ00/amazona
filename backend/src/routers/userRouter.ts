@@ -5,14 +5,16 @@ import bcrypt from "bcryptjs";
 import { generateToken } from "../utils";
 
 export const userRouter = express.Router();
+// POST /api/users/signin
 userRouter.post(
   "/signin",
   asyncHandler(async (req: Request, res: Response) => {
     const user = await UserModel.findOne({ email: req.body.email });
+
     if (user) {
       if (bcrypt.compareSync(req.body.password, user.password)) {
         res.json({
-          _id: user.id,
+          _id: user._id,
           name: user.name,
           email: user.email,
           isAdmin: user.isAdmin,
@@ -21,6 +23,6 @@ userRouter.post(
         return;
       }
     }
-    res.status(401).send({ message: "Invalid email or password" });
+    res.status(401).json({ message: "Invalid email or password" });
   })
 );
