@@ -1,21 +1,104 @@
-// import { useContext } from "react";
-// import { Store } from "../Store";
+import {
+  PayPalButtons,
+  PayPalButtonsComponentProps,
+  SCRIPT_LOADING_STATE,
+  usePayPalScriptReducer,
+} from "@paypal/react-paypal-js";
+import { useContext, useEffect } from "react";
+import { Button, Card, Col, ListGroup, Row } from "react-bootstrap";
+import { Helmet } from "react-helmet-async";
 import { Link, useParams } from "react-router-dom";
-import { useGetOrderDetailsQuery } from "../hooks/orderHooks";
+import { toast } from "react-toastify";
 import LoadingBox from "../components/LoadingBox";
 import MessageBox from "../components/MessageBox";
-import { getError } from "../utils";
+import {
+  useGetOrderDetailsQuery,
+  useGetPaypalClientQuery,
+  usePayOrderMutation,
+} from "../hooks/orderHooks";
+import { Store } from "../Store";
 import { ApiError } from "../types/ApiError";
-import { Helmet } from "react-helmet-async";
-import { Card, Col, ListGroup, Row } from "react-bootstrap";
+import { getError } from "../utils";
 
 export default function OrderPage() {
-  // const { state } = useContext(Store);
-  // const { userInfo } = state;
+  const { state } = useContext(Store);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { userInfo } = state;
 
   const params = useParams();
   const { id: orderId } = params;
-  const { data: order, isLoading, error } = useGetOrderDetailsQuery(orderId!);
+
+  const {
+    data: order,
+    isLoading,
+    error,
+    refetch,
+  } = useGetOrderDetailsQuery(orderId!);
+
+  const { mutateAsync: payOrder, isLoading: loadingPay } =
+    usePayOrderMutation();
+
+  const testPayHandler = async () => {
+    await payOrder({ orderId: orderId! });
+    refetch();
+    toast.success("Order is paid");
+  };
+
+  const [{ isPending, isRejected }, dispatch] = usePayPalScriptReducer();
+
+  const { data: paypalConfig } = useGetPaypalClientQuery();
+
+  useEffect(() => {
+    if (paypalConfig && paypalConfig.clientId) {
+      const loadPaypalScript = async () => {
+        dispatch({
+          type: "resetOptions",
+          value: {
+            "clientId": paypalConfig!.clientId,
+            currency: "USD",
+          },
+        });
+        dispatch({
+          type: "setLoadingStatus",
+          value: SCRIPT_LOADING_STATE.PENDING,
+        });
+      };
+      loadPaypalScript();
+    }
+  }, [paypalConfig, dispatch]);
+
+  const paypalbuttonTransactionProps: PayPalButtonsComponentProps = {
+    style: { layout: "vertical" },
+    createOrder(_data, actions) {
+      return actions.order
+        .create({
+          purchase_units: [
+            {
+              amount: {
+                value: order!.totalPrice.toString(),
+              },
+            },
+          ],
+        })
+        .then((orderID: string) => {
+          return orderID;
+        });
+    },
+    onApprove(_data, actions) {
+      return actions.order!.capture().then(async (details) => {
+        try {
+          await payOrder({ orderId: orderId!, ...details });
+          refetch();
+          toast.success("Order is paid successfully");
+        } catch (err) {
+          toast.error(getError(err as ApiError));
+        }
+      });
+    },
+    onError: (err) => {
+      toast.error(getError(err as ApiError));
+    },
+  };
 
   return isLoading ? (
     <LoadingBox></LoadingBox>
@@ -35,11 +118,10 @@ export default function OrderPage() {
             <Card.Body>
               <Card.Title>Shipping</Card.Title>
               <Card.Text>
-                <strong>Name:</strong>
-                {order.shippingAddress.fullName} <br />
-                <strong>Address:</strong>
-                {order.shippingAddress.city} ,{order.shippingAddress.postalCode}{" "}
-                ,{order.shippingAddress.country} ,
+                <strong>Name:</strong> {order.shippingAddress.fullName} <br />
+                <strong>Address: </strong> {order.shippingAddress.address},
+                {order.shippingAddress.city}, {order.shippingAddress.postalCode}
+                ,{order.shippingAddress.country}
               </Card.Text>
               {order.isDelivered ? (
                 <MessageBox variant="success">
@@ -59,7 +141,7 @@ export default function OrderPage() {
               </Card.Text>
               {order.isPaid ? (
                 <MessageBox variant="success">
-                  paid at {order.paidAt}
+                  Paid at {order.paidAt}
                 </MessageBox>
               ) : (
                 <MessageBox variant="warning">Not Paid</MessageBox>
@@ -125,6 +207,24 @@ export default function OrderPage() {
                     </Col>
                   </Row>
                 </ListGroup.Item>
+                {!order.isPaid && (
+                  <ListGroup.Item>
+                    {isPending ? (
+                      <LoadingBox />
+                    ) : isRejected ? (
+                      <MessageBox variant="danger">
+                        Error in connecting to PayPal
+                      </MessageBox>
+                    ) : (
+                      <div>
+                        <PayPalButtons
+                          {...paypalbuttonTransactionProps}></PayPalButtons>
+                        <Button onClick={testPayHandler}>Test Pay</Button>
+                      </div>
+                    )}
+                    {loadingPay && <LoadingBox></LoadingBox>}
+                  </ListGroup.Item>
+                )}
               </ListGroup>
             </Card.Body>
           </Card>
