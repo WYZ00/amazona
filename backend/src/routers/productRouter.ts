@@ -11,6 +11,15 @@ productRouter.get(
     res.json(products);
   })
 );
+
+productRouter.get(
+  "/categories",
+  asyncHandler(async (req: Request, res: Response) => {
+    const categories = await ProductModel.find().distinct("category");
+    res.json(categories);
+  })
+);
+
 // /api/slug/tshirt
 productRouter.get(
   "/:slug",

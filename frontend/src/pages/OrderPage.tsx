@@ -4,7 +4,7 @@ import {
   SCRIPT_LOADING_STATE,
   usePayPalScriptReducer,
 } from "@paypal/react-paypal-js";
-import { useContext, useEffect } from "react";
+import { useEffect } from "react";
 import { Button, Card, Col, ListGroup, Row } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
 import { Link, useParams } from "react-router-dom";
@@ -16,14 +16,12 @@ import {
   useGetPaypalClientQuery,
   usePayOrderMutation,
 } from "../hooks/orderHooks";
-import { Store } from "../Store";
+
 import { ApiError } from "../types/ApiError";
 import { getError } from "../utils";
 
 export default function OrderPage() {
-  const { state } = useContext(Store);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { userInfo } = state;
 
   const params = useParams();
   const { id: orderId } = params;
@@ -54,7 +52,7 @@ export default function OrderPage() {
         dispatch({
           type: "resetOptions",
           value: {
-            "clientId": paypalConfig!.clientId,
+            clientId: paypalConfig!.clientId,
             currency: "USD",
           },
         });

@@ -1,0 +1,38 @@
+{
+  "name": "amazona",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "bootstrap": "^5.3.1",
+    "classnames": "^2.3.2",
+    "csstype": "^3.1.2",
+    "dequal": "^2.0.3",
+    "dom-helpers": "^5.2.1",
+    "invariant": "^2.2.4",
+    "js-tokens": "^4.0.0",
+    "loose-envify": "^1.4.0",
+    "object-assign": "^4.1.1",
+    "prop-types": "^15.8.1",
+    "prop-types-extra": "^1.1.1",
+    "react": "^18.2.0",
+    "react-bootstrap": "^2.8.0",
+    "react-dom": "^18.2.0",
+    "react-is": "^16.13.1",
+    "react-lifecycles-compat": "^3.0.4",
+    "react-transition-group": "^4.4.5",
+    "regenerator-runtime": "^0.13.11",
+    "scheduler": "^0.23.0",
+    "tslib": "^2.6.1",
+    "uncontrollable": "^7.2.1",
+    "warning": "^4.0.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "build": "cd backend && npm install && npm run build && cd ../frontend && npm install && npm run build",
+    "start": "TG_ALLOW_MIXED=ALLOW node backend/build/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
